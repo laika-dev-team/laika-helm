@@ -1,0 +1,34 @@
+replicaCount: 1
+image:
+  repository: "marverlous/laika-pos"
+  tag: "1.3.2"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+ingress:
+  className: haproxy
+env:
+  DATABASE_URL: postgresql://admin:admin@portgres/127.0.0.1:5432?connection_limit=10& pool_timeout=20
+  LOG_LEVEL: info
+  MAIL_HOST: smtp.gmail.com
+  MAIL_PORT: 587
+  MAIL_SERVICE: gmail
+  REDIS_URI: redis://127.0.0.1:6379
+  S3_URI: http://admin:admin@127.0.0.1:9000/pos-test
+  SERVER_HOST: 0.0.0.0
+  SERVER_PORT: 3000
+  SMTP_PASSWORD: 
+  SMTP_USERNAME: 
+  JEAGER_ENDPOINT: http://localhost:4318/v1/traces
+  NODE_ENV: development
+  DEBUG: 
+  NATS_ENDPOINT: 127.0.0.1:4222
+  E_INVOICE_SERVICE_URL: https://ws.ehoadon.vn/WSPublicEHoaDon.asmx/ExecCommand
+  PARTNER_GUID: 
+  SEND_E_INVOICE: true
+hosts:
+  - name: laika-be-pos
+    serviceName: laika-be-pos
+    ingressPath: /
+    pathtype: Prefix
+    httpPort: 3000
