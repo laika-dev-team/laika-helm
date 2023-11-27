@@ -6,17 +6,26 @@ metadata:
     app.kubernetes.io/name: {{ .Chart.Name }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    fargate: "yes"
+    app.kubernetes.io/part-of: sidecar
+    app.kubernetes.io/version: latest
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Chart.Name }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+      fargate: "yes"
+      app.kubernetes.io/part-of: sidecar
+      app.kubernetes.io/version: latest
   template:
     metadata:
       labels:
         app.kubernetes.io/name: {{ .Chart.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        fargate: "yes"
+        app.kubernetes.io/part-of: sidecar
+        app.kubernetes.io/version: latest
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -29,3 +38,37 @@ spec:
               - name: {{ $name }}
                 value: "{{ $value }}"
             {{- end }}
+          volumeMounts:
+            - name: log
+              mountPath: /var/log
+          resources:
+            requests:
+              cpu: 512m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: "4G"
+        - name: {{ .Chart.Name }}-fluentbit
+          image: grafana/fluent-bit-plugin-loki:2.9.1
+          ports:
+            - name: metrics
+              containerPort: 2020
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits: 
+              cpu: 100m
+              memory: "512Mi"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /fluent-bit/etc/
+            - name: log
+              mountPath: /var/log
+      volumes:
+        - name: log
+          emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: {{ .Chart.Name }}-fluent-bit-config

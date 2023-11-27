@@ -10,6 +10,7 @@ ingress:
 env:
   DATABASE_URL: postgresql://admin:admin@portgres/127.0.0.1:5432?connection_limit=10& pool_timeout=20
   LOG_LEVEL: info
+  LOG_PATH: /var/log/laika_pos.log
   MAIL_HOST: smtp.gmail.com
   MAIL_PORT: 587
   MAIL_SERVICE: gmail
@@ -23,9 +24,12 @@ env:
   NODE_ENV: development
   DEBUG: 
   NATS_ENDPOINT: 127.0.0.1:4222
-  E_INVOICE_SERVICE_URL: https://ws.ehoadon.vn/WSPublicEHoaDon.asmx/ExecCommand
+  E_INVOICE_SERVICE_URL:
   PARTNER_GUID: 
   SEND_E_INVOICE: true
+log:
+  LOKI_HOST: localhost
+  LOKI_PORT: 3100
 hosts:
   - name: laika-be-pos
     serviceName: laika-be-pos

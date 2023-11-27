@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-fluent-bit-config
+  labels:
+    fargate: "yes"
+    app.kubernetes.io/part-of: sidecar
+    app.kubernetes.io/version: latest
+data:
+  fluent-bit.conf: |-
+    [SERVICE]
+      HTTP_Server    On
+      HTTP_Listen    0.0.0.0
+      HTTP_PORT      2020
+      Flush          1
+      Daemon         Off
+      Log_Level      debug
+      Parsers_File   parsers.conf
+    [INPUT]
+      Name              tail
+      Tag               *
+      Path              /var/log/*.log
+      Parser            docker
+      Mem_Buf_Limit     5MB
+      Buffer_Chunk_size 32k
+      Buffer_Max_size   32k
+    [Output]
+      Name                   grafana-loki
+      Match                  *
+      Url                    http://{{ .Values.log.LOKI_HOST }}:{{ .Values.log.LOKI_PORT }}/loki/api/v1/push
+      BatchWait              1s
+      BatchSize              30720
+      labels                 {Service="{{ .Chart.Name }}", job="fluentbit"}
+      RemoveKeys             kubernetes,stream
+      AutoKubernetesLabels   false
+      LineFormat             json
+      LogLevel               warn
+    [OUTPUT]
+      Name          stdout
+      Match         *
+      Format        json
+  parsers.conf: |-
+    [PARSER]
+      Name        docker
+      Format      json
+      Time_Key    time
+      Time_Format %Y-%m-%dT%H:%M:%S.%L
+      Decode_Field_As json log
